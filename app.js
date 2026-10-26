@@ -1,10 +1,10 @@
-() => {
+(() => {
   "use strict";
   const cfg = window.SITE_CONFIG || {};
   const $ = (id) => document.getElementById(id);
   const validStart = cfg.START_AT && !Number.isNaN(Date.parse(cfg.START_AT));
   const validSupabase = cfg.SUPABASE_URL && cfg.SUPABASE_URL.startsWith("https://") && cfg.SUPABASE_PUBLISHABLE_KEY && !cfg.SUPABASE_PUBLISHABLE_KEY.startsWith("COLE_AQUI");
-  const CHALLENGE_TARGET = 59826041;
+  const CHALLENGE_TARGET = 59826042;
   let client = null;
 
   const formatNumber = n => Math.round(Number(n) || 0).toLocaleString("pt-BR");
@@ -72,3 +72,59 @@
     $("exit-bar").style.width = `${p2}%`;
   }
 
+  async function init() {
+    updateClock();
+    setInterval(updateClock, 1000);
+    updateChallenge(0);
+    if (!validSupabase || !window.supabase) {
+      setMessage("Configure as credenciais do Supabase em config.js para ativar a votação.", true);
+      return;
+    }
+    client = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_PUBLISHABLE_KEY);
+    await loadResults();
+    setInterval(loadResults, 15000);
+    const priorVote = localStorage.getItem("relogio_publico_voted_v1");
+    if (priorVote) {
+      document.querySelectorAll('input[name="choice"]').forEach(el => { el.disabled = true; if (el.value === priorVote) el.checked = true; });
+      $("vote-button").disabled = true;
+      $("vote-button").textContent = "Voto já registrado neste navegador";
+      setMessage("Este navegador já registrou um voto. A limitação local pode ser contornada usando outro navegador ou dispositivo.");
+    }
+    $("vote-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      if (!client) return;
+      if (localStorage.getItem("relogio_publico_voted_v1")) { setMessage("Este navegador já registrou um voto.", true); return; }
+      const choice = new FormData($("vote-form")).get("choice");
+      if (!choice) { setMessage("Escolha uma opção antes de votar.", true); return; }
+      $("vote-button").disabled = true;
+      $("vote-button").textContent = "Registrando...";
+      const { data, error } = await client.rpc("cast_vote", { p_voter_key: localVoterKey(), p_choice: choice });
+      if (error) {
+        setMessage("Não foi possível registrar o voto. Verifique se o SQL foi executado no Supabase.", true);
+        $("vote-button").disabled = false;
+        $("vote-button").textContent = "Registrar meu voto";
+        return;
+      }
+      const status = data && data[0] ? data[0].status : data;
+      localStorage.setItem("relogio_publico_voted_v1", choice);
+      setMessage(status === "already_voted" ? "Este identificador já tinha registrado um voto." : "Voto registrado. Obrigado por participar!");
+      document.querySelectorAll('input[name="choice"]').forEach(el => { el.disabled = true; });
+      $("vote-button").textContent = "Voto registrado";
+      await loadResults();
+    });
+  }
+
+  $("share-button").addEventListener("click", async () => {
+    const data = { title: document.title, text: "Confira o relógio público e participe da enquete.", url: location.href };
+    if (navigator.share) { try { await navigator.share(data); } catch (_) {} }
+    else {
+      try { await navigator.clipboard.writeText(location.href); setMessage("Link copiado para compartilhar!"); }
+      catch (_) { setMessage("Copie o endereço do navegador para compartilhar.", true); }
+    }
+  });
+  $("copy-button").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(location.href); setMessage("Link copiado!"); }
+    catch (_) { setMessage("Não foi possível copiar automaticamente. Copie o endereço do navegador.", true); }
+  });
+  document.addEventListener("DOMContentLoaded", init);
+})();
