@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="Contagem pública e enquete de opinião sobre os possíveis próximos acontecimentos.">
+  <title>E agora? — Relógio público</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="config.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <main class="wrap">
+    <header class="topline"><span class="dot"></span> RELÓGIO PÚBLICO <span class="sep">/</span> ENQUETE ABERTA</header>
+    <section class="hero">
+      <p class="eyebrow">CONTAGEM EM TEMPO REAL</p>
+      <h1>E agora,<br><span>Flávio?</span></h1>
+      <p class="intro">Uma contagem pública desde o marco inicial escolhido e uma enquete sobre qual dos cenários acontecerá primeiro.</p>
+      <div class="clock-card">
+        <div class="clock-label" id="clock-label">TEMPO DECORRIDO</div>
+        <div class="clock" aria-live="off">
+          <div><strong id="days">—</strong><span>DIAS</span></div>
+          <div><strong id="hours">—</strong><span>HORAS</span></div>
+          <div><strong id="minutes">—</strong><span>MIN</span></div>
+          <div><strong id="seconds">—</strong><span>SEG</span></div>
+        </div>
+        <p id="clock-note" class="note">Configure o marco inicial no arquivo config.js para ativar a contagem.</p>
+      </div>
+    </section>
+
+    <section class="poll">
+      <div class="section-head">
+        <div><p class="eyebrow">A PERGUNTA</p><h2>O que você acha que acontece primeiro?</h2></div>
+        <span class="live-tag"><span class="dot"></span> VOTAÇÃO</span>
+      </div>
+      <p class="subtext">Escolha uma opção. Os resultados são agregados e ficam visíveis para todos.</p>
+      <form id="vote-form">
+        <label class="option">
+          <input type="radio" name="choice" value="prisao" required>
+          <span class="option-icon" aria-hidden="true">⚖</span>
+          <span class="option-copy"><strong>Será preso</strong><small>Prisão confirmada por fonte confiável.</small></span>
+          <span class="radio-mark"></span>
+        </label>
+        <label class="option">
+          <input type="radio" name="choice" value="saida" required>
+          <span class="option-icon" aria-hidden="true">↗</span>
+          <span class="option-copy"><strong>Vai sair do Brasil</strong><small>Saída do país confirmada por fonte confiável.</small></span>
+          <span class="radio-mark"></span>
+        </label>
+        <button id="vote-button" type="submit">Registrar meu voto</button>
+      </form>
+      <p id="vote-message" class="message" role="status"></p>
+
+      <div class="results">
+        <div class="results-title"><h3>Resultado da comunidade</h3><span id="total-votes">0 votos</span></div>
+        <div class="result-row"><div class="result-meta"><span>Será preso</span><strong id="prison-pct">0%</strong></div><div class="bar"><span id="prison-bar"></span></div></div>
+        <div class="result-row"><div class="result-meta"><span>Vai sair do Brasil</span><strong id="exit-pct">0%</strong></div><div class="bar"><span id="exit-bar"></span></div></div>
+        <p class="note">A enquete registra opiniões, não fatos nem previsões verificadas. Os resultados podem não representar a população brasileira.</p>
+      </div>
+      <div class="share-row"><button id="share-button" class="secondary" type="button">Compartilhar página</button><button id="copy-button" class="secondary" type="button">Copiar link</button></div>
+    </section>
+
+    <footer>
+      <p>Projeto independente de contagem e enquete pública.</p>
+      <p>Os eventos mencionados são hipóteses da enquete. Qualquer atualização factual deve ser confirmada por fontes confiáveis.</p>
+    </footer>
+  </main>
+</body>
+</html>
