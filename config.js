@@ -1,4 +1,4 @@
-/*
+*
   CONFIGURAÇÃO DO SITE
   Use somente a Publishable key no navegador. Nunca use service_role/secret key aqui.
 */
@@ -11,8 +11,8 @@ window.SITE_CONFIG = {
   START_LABEL: "Desde o anúncio oficial do resultado",
 
   // Marco escolhido para encerrar a contagem até a fuga.
-  FLIGHT_AT: "2026-10-27T06:22:00-03:00",
-  FLIGHT_LABEL: "Decolagem informada às 06h22, horário de Brasília",
+  FLIGHT_AT: "2026-10-28T06:22:00-03:00",
+  FLIGHT_LABEL: "Decolagem do Equador rumo aos EUA, em 28/10/2026 às 06h22, horário de Brasília",
 
   // Deixe vazio até haver uma data e hora confirmadas para o evento.
   // Ao confirmar uma prisão, preencha no formato ISO com fuso, por exemplo:
@@ -20,4 +20,3 @@ window.SITE_CONFIG = {
   ARREST_AT: "",
   ARREST_LABEL: "Prisão confirmada"
 };
-
