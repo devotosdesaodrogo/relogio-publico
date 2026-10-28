@@ -1,25 +1,25 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
- <meta charset="utf-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#111827">
-  <meta name="description" content="Contagem rolando desde que foi anunciado pelo TSE a vitória do Lula. Mas e vc, o que acha que vai acontecer com o Flávio primeiro?">
+  <meta name="description" content="Relógio público: tempo entre o marco eleitoral e a saída do país, percentual da enquete original que previa a saída e contagem desde a decolagem até uma eventual prisão confirmada.">
 
   <meta property="og:type" content="website">
-  <meta property="og:title" content="E agora, Flávio? Papuda com Papai ou Fugir como o Dudu Bananinha?">
-  <meta property="og:description" content="Acompanhe a contagem pública e participe da enquete.">
+  <meta property="og:title" content="E agora, Flávio? | Relógio Público">
+  <meta property="og:description" content="Veja o tempo registrado até a saída do país, o percentual da enquete original que previa esse desfecho e a contagem desde então.">
   <meta property="og:image" content="https://devotosdesaodrogo.github.io/relogio-publico/compartilhamento.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:url" content="https://devotosdesaodrogo.github.io/relogio-publico/">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="E agora, Flávio? Contagem Regressiva">
-  <meta name="twitter:description" content="Acompanhe a contagem pública e participe da enquete.">
+  <meta name="twitter:title" content="E agora, Flávio? | Relógio Público">
+  <meta name="twitter:description" content="Tempo registrado, resultado da enquete original e contagem em andamento.">
   <meta name="twitter:image" content="https://devotosdesaodrogo.github.io/relogio-publico/compartilhamento.jpg">
 
-  <title>E agora, Flávio? Papuda com Papai ou Fugir como o Dudu Bananinha?</title>
+  <title>E agora, Flávio? | Relógio Público</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="config.js"></script>
@@ -27,87 +27,64 @@
 </head>
 <body>
   <main class="wrap">
-    <header class="topline"><span class="dot"></span> RELÓGIO PÚBLICO <span class="sep">/</span> ENQUETE ABERTA</header>
+    <header class="topline"><span class="dot"></span> RELÓGIO PÚBLICO <span class="sep">/</span> CONTAGEM E REGISTRO</header>
+
     <section class="hero">
-      <p class="eyebrow">CONTAGEM EM TEMPO REAL</p>
+      <p class="eyebrow">REGISTRO PÚBLICO</p>
       <h1>E agora,<br><span>Flávio?</span></h1>
-      <p class="intro">Contagem rolando desde que foi anunciado pelo TSE a vitória do Lula. Mas e vc, o que acha que vai acontecer com o Flávio primeiro?</p>
-      <div class="clock-card">
-        <div class="clock-label" id="clock-label">TEMPO DECORRIDO</div>
+      <p class="intro">Uma contagem em três partes: o tempo entre o marco eleitoral e a saída do país, o resultado da enquete original sobre esse desfecho e o tempo decorrido desde a decolagem até uma eventual prisão confirmada.</p>
+
+      <section class="clock-card" aria-labelledby="flight-clock-heading">
+        <p class="eyebrow">CONTADOR ENCERRADO</p>
+        <h2 class="clock-heading" id="flight-clock-heading">Tempo até a fuga</h2>
+        <div class="clock-label" id="flight-clock-label">TEMPO DECORRIDO ATÉ O MARCO REGISTRADO</div>
         <div class="clock" aria-live="off">
-          <div><strong id="days">—</strong><span>DIAS</span></div>
-          <div><strong id="hours">—</strong><span>HORAS</span></div>
-          <div><strong id="minutes">—</strong><span>MIN</span></div>
-          <div><strong id="seconds">—</strong><span>SEG</span></div>
+          <div><strong id="flight-days">—</strong><span>DIAS</span></div>
+          <div><strong id="flight-hours">—</strong><span>HORAS</span></div>
+          <div><strong id="flight-minutes">—</strong><span>MIN</span></div>
+          <div><strong id="flight-seconds">—</strong><span>SEG</span></div>
         </div>
-        <p id="clock-note" class="note">Configure o marco inicial no arquivo config.js para ativar a contagem.</p>
-      </div>
-    </section>
-
-    <section class="poll">
-      <div class="section-head">
-        <div><p class="eyebrow">A PERGUNTA</p><h2>O que você acha que acontece primeiro?</h2></div>
-        <span class="live-tag"><span class="dot"></span> VOTAÇÃO</span>
-      </div>
-      <p class="subtext">Escolha uma opção. Os resultados são agregados e ficam visíveis para todos.</p>
-      <form id="vote-form">
-        <label class="option">
-          <input type="radio" name="choice" value="prisao" required>
-          <span class="option-icon" aria-hidden="true">⚖</span>
-          <span class="option-copy"><strong>Papuda com o Papai</strong><small>Prisão confirmada por fonte confiável.</small></span>
-          <span class="radio-mark"></span>
-        </label>
-        <label class="option">
-          <input type="radio" name="choice" value="saida" required>
-          <span class="option-icon" aria-hidden="true">↗</span>
-          <span class="option-copy"><strong>Fugir como o Dudu Bananinha</strong><small>Saída do país confirmada por fonte confiável.</small></span>
-          <span class="radio-mark"></span>
-        </label>
-        <button id="vote-button" type="submit">Registrar meu voto</button>
-      </form>
-      <p id="vote-message" class="message" role="status"></p>
-
-      <div class="results">
-        <div class="results-title"><h3>Resultado da comunidade</h3><span id="total-votes">0 votos</span></div>
-        <div class="result-row"><div class="result-meta"><span>Papuda com Papai</span><strong id="prison-pct">0%</strong></div><div class="bar"><span id="prison-bar"></span></div></div>
-        <div class="result-row"><div class="result-meta"><span>Fugir como o Dudu Bananinha</span><strong id="exit-pct">0%</strong></div><div class="bar"><span id="exit-bar"></span></div></div>
-        <p class="note">A enquete registra opiniões, não fatos nem previsões verificadas. Os resultados podem não representar a população brasileira.</p>
-      </div>
-     
-      <section class="challenge">
-        <p class="eyebrow">O DESAFIO DA COMUNIDADE</p>
-        <h2>Vamos superar os votos dele no 2º turno?</h2>
-        <p class="challenge-intro">
-          Quantos votos faltam para a nossa enquete ultrapassar a votação de Flávio Bolsonaro no segundo turno de 2026?
-        </p>
-
-        <div class="challenge-stats">
-          <div class="challenge-stat">
-            <span>VOTOS NA NOSSA ENQUETE</span>
-            <strong id="challenge-current">0</strong>
-          </div>
-          <div class="challenge-stat">
-            <span>VOTOS QUE FALTAM</span>
-            <strong id="challenge-remaining">59.826.042</strong>
-          </div>
-        </div>
-
-        <div class="challenge-track">
-          <span id="challenge-bar"></span>
-        </div>
-        <p class="challenge-progress" id="challenge-progress">0% da meta alcançada</p>
-        <p class="note">
-          Meta: 59.826.042 votos, um a mais que os 59.826.041 votos recebidos por Flávio Bolsonaro no segundo turno de 2026. Fonte: TSE. Esta é uma comparação simbólica entre uma enquete online e o resultado eleitoral oficial; não são votos equivalentes.
-        </p>
+        <p id="flight-note" class="note">Contagem encerrada no horário de referência informado.</p>
       </section>
-
-      <div class="share-row"><button id="share-button" class="secondary" type="button">Compartilhar página</button><button id="copy-button" class="secondary" type="button">Copiar link</button></div>
     </section>
+
+    <section class="poll results-only" aria-labelledby="results-heading">
+      <div class="section-head">
+        <div><p class="eyebrow">ENQUETE ORIGINAL</p><h2 id="results-heading">Quem previu a saída do país?</h2></div>
+        <span class="live-tag"><span class="dot"></span> RESULTADO</span>
+      </div>
+      <p class="subtext">Mantemos apenas o percentual das pessoas que escolheram a opção de saída do país na enquete original. A votação foi encerrada nesta página; os dados são consultados em modo de leitura.</p>
+      <div class="prediction-result">
+        <div class="prediction-number" id="exit-pct">—%</div>
+        <div class="prediction-copy">
+          <strong>Previram a saída do país</strong>
+          <span id="vote-base">Carregando o resultado original…</span>
+        </div>
+      </div>
+      <p class="note" id="results-note">A enquete registra opiniões dos participantes, não uma amostra representativa da população brasileira.</p>
+    </section>
+
+    <section class="clock-card arrest-card" aria-labelledby="arrest-clock-heading">
+      <p class="eyebrow">NOVO CONTADOR · EM ANDAMENTO</p>
+      <h2 class="clock-heading" id="arrest-clock-heading">Quanto tempo até uma prisão confirmada?</h2>
+      <p class="subtext">A contagem começa no horário de referência da decolagem e continua até que uma prisão seja confirmada e seu horário seja registrado. Não é uma previsão de quando isso acontecerá.</p>
+      <div class="clock-label" id="arrest-clock-label">TEMPO DECORRIDO DESDE O MARCO INICIAL</div>
+      <div class="clock" aria-live="off">
+        <div><strong id="arrest-days">—</strong><span>DIAS</span></div>
+        <div><strong id="arrest-hours">—</strong><span>HORAS</span></div>
+        <div><strong id="arrest-minutes">—</strong><span>MIN</span></div>
+        <div><strong id="arrest-seconds">—</strong><span>SEG</span></div>
+      </div>
+      <p id="arrest-note" class="note">Início: 27/10/2026, às 06h22, horário de Brasília. O contador será encerrado somente após registro de data e hora confirmadas.</p>
+    </section>
+
+    <div class="share-row"><button id="share-button" class="secondary" type="button">Compartilhar página</button><button id="copy-button" class="secondary" type="button">Copiar link</button></div>
 
     <footer>
-      <p>Projeto independente de contagem e enquete pública.</p>
-      <p>Os eventos mencionados são hipóteses da enquete. Qualquer atualização factual deve ser confirmada por fontes confiáveis.</p>
+      <p>Projeto independente de contagem pública.</p>
+      <p>O horário de referência da decolagem é o marco adotado pelo projeto e deve ser acompanhado da fonte jornalística correspondente. Atualizações factuais devem ser confirmadas por fontes confiáveis.</p>
     </footer>
   </main>
 </body>
 </html>
+
