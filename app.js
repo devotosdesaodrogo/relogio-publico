@@ -2,129 +2,134 @@
   "use strict";
   const cfg = window.SITE_CONFIG || {};
   const $ = (id) => document.getElementById(id);
-  const validStart = cfg.START_AT && !Number.isNaN(Date.parse(cfg.START_AT));
-  const validSupabase = cfg.SUPABASE_URL && cfg.SUPABASE_URL.startsWith("https://") && cfg.SUPABASE_PUBLISHABLE_KEY && !cfg.SUPABASE_PUBLISHABLE_KEY.startsWith("COLE_AQUI");
-  const CHALLENGE_TARGET = 59826042;
+  const validSupabase = Boolean(
+    cfg.SUPABASE_URL && cfg.SUPABASE_URL.startsWith("https://") &&
+    cfg.SUPABASE_PUBLISHABLE_KEY &&
+    !cfg.SUPABASE_PUBLISHABLE_KEY.startsWith("COLE_AQUI")
+  );
   let client = null;
 
   const formatNumber = n => Math.round(Number(n) || 0).toLocaleString("pt-BR");
 
-  function updateClock() {
-    if (!validStart) { $("clock-note").textContent = "Falta configurar a data e hora do marco inicial no arquivo config.js."; return; }
-    const start = new Date(cfg.START_AT).getTime();
-    const end = cfg.END_AT && !Number.isNaN(Date.parse(cfg.END_AT)) ? new Date(cfg.END_AT).getTime() : Date.now();
-    let sec = Math.floor(Math.max(0, end - start) / 1000);
-    const days = Math.floor(sec / 86400); sec %= 86400;
-    const hours = Math.floor(sec / 3600); sec %= 3600;
-    const mins = Math.floor(sec / 60); sec %= 60;
-    $("days").textContent = String(days).padStart(3, "0");
-    $("hours").textContent = String(hours).padStart(2, "0");
-    $("minutes").textContent = String(mins).padStart(2, "0");
-    $("seconds").textContent = String(sec).padStart(2, "0");
-    $("clock-label").textContent = cfg.END_AT ? "TEMPO ATÉ O ENCERRAMENTO REGISTRADO" : "TEMPO DECORRIDO";
-    $("clock-note").textContent = cfg.END_AT ? `${cfg.START_LABEL || "Marco inicial"} · Encerrado: ${cfg.END_LABEL || cfg.END_AT}` : `${cfg.START_LABEL || "Marco inicial"} · Início: ${new Date(cfg.START_AT).toLocaleString("pt-BR")}`;
-  }
-
-  function updateChallenge(total) {
-    const current = Math.max(0, Number(total) || 0);
-    const remaining = Math.max(0, CHALLENGE_TARGET - current);
-    const progress = Math.min(100, current / CHALLENGE_TARGET * 100);
-    $("challenge-current").textContent = formatNumber(current);
-    $("challenge-remaining").textContent = formatNumber(remaining);
-    $("challenge-bar").style.width = `${progress}%`;
-    const track = document.querySelector(".challenge-track");
-    if (track) track.setAttribute("aria-valuenow", String(progress.toFixed(6)));
-    $("challenge-progress").textContent = current >= CHALLENGE_TARGET
-      ? `Meta simbólica superada! ${formatNumber(current - CHALLENGE_TARGET)} voto(s) acima da meta.`
-      : `${progress.toLocaleString("pt-BR", { maximumFractionDigits: 6 })}% da meta alcançada`;
-  }
-
-  function localVoterKey() {
-    const keyName = "relogio_publico_voter_id_v1";
-    let id = localStorage.getItem(keyName);
-    if (!id) {
-      id = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
-      localStorage.setItem(keyName, id);
+  function renderDuration(prefix, startValue, endValue, label, note, endedText, runningText) {
+    const startMs = Date.parse(startValue || "");
+    if (!Number.isFinite(startMs)) {
+      $(`${prefix}-note`).textContent = "A data inicial ainda não foi configurada corretamente em config.js.";
+      return;
     }
-    return id;
+    const parsedEnd = endValue ? Date.parse(endValue) : NaN;
+    const hasEnd = Number.isFinite(parsedEnd);
+    const endMs = hasEnd ? parsedEnd : Date.now();
+    let seconds = Math.floor(Math.max(0, endMs - startMs) / 1000);
+    const days = Math.floor(seconds / 86400); seconds %= 86400;
+    const hours = Math.floor(seconds / 3600); seconds %= 3600;
+    const minutes = Math.floor(seconds / 60); seconds %= 60;
+
+    $(`${prefix}-days`).textContent = formatNumber(days);
+    $(`${prefix}-hours`).textContent = String(hours).padStart(2, "0");
+    $(`${prefix}-minutes`).textContent = String(minutes).padStart(2, "0");
+    $(`${prefix}-seconds`).textContent = String(seconds).padStart(2, "0");
+    $(`${prefix}-clock-label`).textContent = hasEnd ? endedText : runningText;
+    $(`${prefix}-note`).textContent = note;
   }
 
-  function setMessage(message, isError = false) {
-    $("vote-message").textContent = message;
-    $("vote-message").style.color = isError ? "#ff9b9b" : "var(--green)";
+  function updateClocks() {
+    const flightAt = cfg.FLIGHT_AT || "2026-10-27T06:22:00-03:00";
+    const flightLabel = cfg.FLIGHT_LABEL || "27/10/2026, às 06h22, horário de Brasília";
+    const startLabel = cfg.START_LABEL || "Marco inicial";
+    const startDisplay = cfg.START_AT ? new Date(cfg.START_AT).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }) : "";
+    const flightDisplay = new Date(flightAt).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+
+    renderDuration(
+      "flight",
+      cfg.START_AT,
+      flightAt,
+      "",
+      `${startLabel} · Início: ${startDisplay}. Encerrado em ${flightLabel}.`,
+      "CONTAGEM ENCERRADA NO MARCO REGISTRADO",
+      "TEMPO DECORRIDO ATÉ O MARCO REGISTRADO"
+    );
+    renderDuration(
+      "arrest",
+      flightAt,
+      cfg.ARREST_AT || "",
+      "",
+      cfg.ARREST_AT
+        ? `Início: ${flightDisplay}. Encerrado: ${cfg.ARREST_LABEL || "Prisão confirmada"} · ${new Date(cfg.ARREST_AT).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}.`
+        : `Início: ${flightLabel}. Contagem em andamento; será encerrada quando uma data e hora de prisão forem confirmadas e registradas.`,
+      "TEMPO ATÉ O HORÁRIO DE PRISÃO REGISTRADO",
+      "TEMPO DECORRIDO DESDE O MARCO INICIAL"
+    );
   }
 
-  async function loadResults() {
-    if (!client) return;
+  async function loadOriginalPollResult() {
+    if (!client) {
+      $("exit-pct").textContent = "—%";
+      $("vote-base").textContent = "Não foi possível conectar ao resultado original da enquete.";
+      $("results-note").textContent = "Verifique a configuração de leitura do Supabase. Nenhuma votação é aceita nesta página.";
+      return;
+    }
     const { data, error } = await client.rpc("get_vote_totals");
-    if (error) { setMessage("Não foi possível carregar os resultados. Confira a configuração do Supabase.", true); return; }
+    if (error) {
+      $("exit-pct").textContent = "—%";
+      $("vote-base").textContent = "Resultado original temporariamente indisponível.";
+      $("results-note").textContent = "Os dados originais não foram alterados. Tente novamente mais tarde.";
+      return;
+    }
     const totals = data && data[0] ? data[0] : { prisao: 0, saida: 0, total: 0 };
-    const prison = Number(totals.prisao || 0);
-    const exit = Number(totals.saida || 0);
-    const total = Number(totals.total || 0);
-    updateChallenge(total);
-    const p1 = total ? Math.round(prison / total * 100) : 0;
-    const p2 = total ? 100 - p1 : 0;
-    $("total-votes").textContent = `${formatNumber(total)} ${total === 1 ? "voto" : "votos"}`;
-    $("prison-pct").textContent = `${p1}%`;
-    $("exit-pct").textContent = `${p2}%`;
-    $("prison-bar").style.width = `${p1}%`;
-    $("exit-bar").style.width = `${p2}%`;
+    const exitVotes = Math.max(0, Number(totals.saida) || 0);
+    const totalVotes = Math.max(0, Number(totals.total) || 0);
+    const percentage = totalVotes ? Math.round(exitVotes / totalVotes * 100) : 0;
+    $("exit-pct").textContent = `${percentage}%`;
+    $("vote-base").textContent = `${formatNumber(exitVotes)} de ${formatNumber(totalVotes)} votos da enquete original`;
+    $("results-note").textContent = "Percentual calculado a partir dos votos registrados na enquete original. A enquete expressa as opiniões de seus participantes e não representa necessariamente a população brasileira.";
   }
 
   async function init() {
-    updateClock();
-    setInterval(updateClock, 1000);
-    updateChallenge(0);
+    updateClocks();
+    window.setInterval(updateClocks, 1000);
+
     if (!validSupabase || !window.supabase) {
-      setMessage("Configure as credenciais do Supabase em config.js para ativar a votação.", true);
+      await loadOriginalPollResult();
       return;
     }
-    client = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_PUBLISHABLE_KEY);
-    await loadResults();
-    setInterval(loadResults, 15000);
-    const priorVote = localStorage.getItem("relogio_publico_voted_v1");
-    if (priorVote) {
-      document.querySelectorAll('input[name="choice"]').forEach(el => { el.disabled = true; if (el.value === priorVote) el.checked = true; });
-      $("vote-button").disabled = true;
-      $("vote-button").textContent = "Voto já registrado neste navegador";
-      setMessage("Este navegador já registrou um voto. A limitação local pode ser contornada usando outro navegador ou dispositivo.");
+    try {
+      client = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_PUBLISHABLE_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+      });
+      await loadOriginalPollResult();
+    } catch (_) {
+      await loadOriginalPollResult();
     }
-    $("vote-form").addEventListener("submit", async event => {
-      event.preventDefault();
-      if (!client) return;
-      if (localStorage.getItem("relogio_publico_voted_v1")) { setMessage("Este navegador já registrou um voto.", true); return; }
-      const choice = new FormData($("vote-form")).get("choice");
-      if (!choice) { setMessage("Escolha uma opção antes de votar.", true); return; }
-      $("vote-button").disabled = true;
-      $("vote-button").textContent = "Registrando...";
-      const { data, error } = await client.rpc("cast_vote", { p_voter_key: localVoterKey(), p_choice: choice });
-      if (error) {
-        setMessage("Não foi possível registrar o voto. Verifique se o SQL foi executado no Supabase.", true);
-        $("vote-button").disabled = false;
-        $("vote-button").textContent = "Registrar meu voto";
-        return;
-      }
-      const status = data && data[0] ? data[0].status : data;
-      localStorage.setItem("relogio_publico_voted_v1", choice);
-      setMessage(status === "already_voted" ? "Este identificador já tinha registrado um voto." : "Voto registrado. Obrigado por participar!");
-      document.querySelectorAll('input[name="choice"]').forEach(el => { el.disabled = true; });
-      $("vote-button").textContent = "Voto registrado";
-      await loadResults();
-    });
   }
 
   $("share-button").addEventListener("click", async () => {
-    const data = { title: document.title, text: "Confira o relógio público e participe da enquete.", url: location.href };
-    if (navigator.share) { try { await navigator.share(data); } catch (_) {} }
-    else {
-      try { await navigator.clipboard.writeText(location.href); setMessage("Link copiado para compartilhar!"); }
-      catch (_) { setMessage("Copie o endereço do navegador para compartilhar.", true); }
+    const data = {
+      title: document.title,
+      text: "Confira o relógio público, a contagem registrada e o resultado da enquete original.",
+      url: location.href
+    };
+    if (navigator.share) {
+      try { await navigator.share(data); } catch (_) {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(location.href);
+        $("share-button").textContent = "Link copiado!";
+      } catch (_) {
+        $("share-button").textContent = "Copie o endereço do navegador para compartilhar.";
+      }
     }
   });
+
   $("copy-button").addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText(location.href); setMessage("Link copiado!"); }
-    catch (_) { setMessage("Não foi possível copiar automaticamente. Copie o endereço do navegador.", true); }
+    try {
+      await navigator.clipboard.writeText(location.href);
+      $("copy-button").textContent = "Link copiado!";
+    } catch (_) {
+      $("copy-button").textContent = "Copie o endereço do navegador.";
+    }
   });
+
   document.addEventListener("DOMContentLoaded", init);
 })();
+
